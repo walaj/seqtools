@@ -2,7 +2,7 @@
 git clone --recursive https://github.com/walaj/rgtools 
 cd rgtools/SeqLib 
 ./configure ## configure SeqLib and build
-make
+make CXXFLAGS=-std=c++14
 cd ..
 make ## build rgtools
 ```
