@@ -4,6 +4,12 @@
 
 int main(int argc, char** argv) {
 
+  if (argc < 4) {
+    std::cerr << "rgtools old_bam norg_bam sample_name > new_bam_with_rg" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+    
+
   std::cerr << "Original BAM with readgroups in RG tag: " << argv[1] << std::endl;
   std::cerr << "Second BAM without readgroups:          " << argv[2] << std::endl;
 
@@ -50,7 +56,7 @@ int main(int argc, char** argv) {
 
   const std::string pl = "Illumina"; // platform
   const std::string lb = "Solexa"; // library
-  const std::string sm = ""; // sample
+  const std::string sm = std::string(argv[3]); // sample
   const std::string cn = "BI"; // sequencing center (Broad Institute)
 
   assert(!pl.empty());

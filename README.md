@@ -10,7 +10,7 @@ make ## build rgtools
 ```
 OBAM=<original_bam_with_readgroups>
 NBAM=<new_bam_without_readgroup>
-rgtools $OBAM $NBAM > mynewbam.bam
+rgtools $OBAM $NBAM sample_name > mynewbam.bam
 ```
 
 ## Acknowledgments
