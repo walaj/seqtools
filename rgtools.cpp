@@ -29,8 +29,8 @@ int main(int argc, char** argv) {
   while (r.GetNextRecord(rr)) {
     const std::string rg = rr.GetZTag("RG");
     if (!rg.empty()) {
-      map[rr.Qname()] = rr.GetZTag("RG");
-      rmap.insert(rr.GetZTag("RG"));
+      map[rr.Qname()] = rg;
+      rmap.insert(rg);
     } else {
       std::cerr << "no read group in original BAM for read: " << rr.Qname() << std::endl;
     }
@@ -47,8 +47,22 @@ int main(int argc, char** argv) {
   while (std::getline(iss, val, '\n'))
     if (val.find("RG") == std::string::npos)
       newheader << val << std::endl;
-  for (auto& i : rmap)
-    newheader << "@RG\tID:\t" << i << "\tPL:Illumina\tLB:Solexa-271417\tPI:0\tDT:2014-08-19T00:00:00-0400\tSM:NA12878\tCN:\tBI" << std::endl;
+
+  const std::string pl = "Illumina"; // platform
+  const std::string lb = "Solexa"; // library
+  const std::string sm = ""; // sample
+  const std::string cn = "BI"; // sequencing center (Broad Institute)
+
+  assert(!pl.empty());
+  assert(!sm.empty());
+  assert(!lb.empty());
+  assert(!cn.empty());
+
+  for (auto& i : rmap) {
+    assert(!i.empty());
+    newheader << "@RG\tID:" << i << "\tPL:" << pl << "\tLB:" << lb << 
+      "\tSM:" << sm << "\tCN:" << cn << std::endl;
+  }
   
   std::string newheaderstring = newheader.str();
   newheaderstring.pop_back(); // delete the last newline
