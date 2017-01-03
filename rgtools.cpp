@@ -60,8 +60,11 @@ int main(int argc, char** argv) {
 
   for (auto& i : rmap) {
     assert(!i.empty());
-    newheader << "@RG\tID:" << i << "\tPL:" << pl << "\tLB:" << lb << 
+    std::stringstream ss; 
+    ss << "@RG\tID:" << i << "\tPL:" << pl << "\tLB:" << lb << 
       "\tSM:" << sm << "\tCN:" << cn << std::endl;
+    std::cerr << ss.str();
+    newheader << ss.str();
   }
   
   std::string newheaderstring = newheader.str();
