@@ -3,6 +3,7 @@
 #include <sstream>
 
 static const std::string delimiter = ":";
+static const uint32_t m_seed = 1337;
 
 void parseRG(const std::string& qname, std::string& parsed_rg) {
 
@@ -48,8 +49,11 @@ int main(int argc, char** argv) {
     exit(EXIT_FAILURE);
   } 
 
-  std::unordered_map<std::string, std::string> map;
-  std::unordered_set<std::string> rmap;
+  //std::unordered_map<std::string, std::string> map;
+  std::unordered_map<uint32_t, uint8_t> map_hash;
+  std::unordered_map<std::string, uint8_t> rmap;
+  std::unordered_map<uint8_t, std::string> id_to_rg;
+  size_t rg_count = 0;
   SeqLib::BamRecord rr;
   size_t count=0;
 
@@ -72,13 +76,20 @@ int main(int argc, char** argv) {
 
     // add the RG
     if (!rg.empty()) {
-      if (diff_bams)
-	map[rr.Qname()] = rg;
-      rmap.insert(rg);
+      if (!rmap.count(rg)) { // not seen this rg before
+	++rg_count;
+	rmap[rg] = rg_count;
+	id_to_rg[rg_count] = rg;
+      }
+      if (diff_bams) { // if diff bams, store rg info
+	uint32_t k = __ac_Wang_hash(__ac_X31_hash_string(rr.Qname().c_str()) ^ m_seed);
+	map_hash[k] = rmap[rg]; //rmap[rg] is uint8_t
+	//map[rr.Qname()] = rmap[rg];
+      }
     }
     
     if (count++ % 1000000 == 0)
-      std::cerr << "...getting RG from read at " << rr.Brief() << " map.size() " << map.size() << std::endl;
+      std::cerr << "...getting RG from read at " << rr.Brief() << " map.size() " << map_hash.size() << std::endl;
     
   }
   r.Close();
@@ -100,11 +111,11 @@ int main(int argc, char** argv) {
   assert(!sm.empty());
   assert(!lb.empty());
   assert(!cn.empty());
-
+  
   for (auto& i : rmap) {
-    assert(!i.empty());
+    assert(!i.first.empty());
     std::stringstream ss; 
-    ss << "@RG\tID:" << i << "\tPL:" << pl << "\tLB:" << lb << 
+    ss << "@RG\tID:" << i.first << "\tPL:" << pl << "\tLB:" << lb << 
       "\tSM:" << sm << "\tCN:" << cn << std::endl;
     std::cerr << ss.str();
     newheader << ss.str();
@@ -122,9 +133,11 @@ int main(int argc, char** argv) {
     exit(EXIT_FAILURE);
   }
   w.WriteHeader();
-
+	
   while (r2.GetNextRecord(rr)) {
-    std::string rg = map[rr.Qname()];
+    uint32_t k = __ac_Wang_hash(__ac_X31_hash_string(rr.Qname().c_str()) ^ m_seed);    
+    //std::string rg = map[rr.Qname()];
+    std::string rg = id_to_rg[map_hash[k]];
     if (rg.empty()) {
       if (diff_bams) // if diff bams, then this should not happen
 	std::cerr << "RG empty for read " << rr.Qname() << std::endl;
