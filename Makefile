@@ -5,10 +5,10 @@ CXXFLAGS=-W -Wall -pedantic -std=c++14
 binaries=rgtools
 
 all: rgtools.o
-	g++ rgtools.o -O0 -g -o rgtools $(LIBS) -lpthread -lz -lm 
+	g++ rgtools.o -O3 -g -o rgtools $(LIBS) -lpthread -lz -lm 
 
 rgtools.o: rgtools.cpp
-	g++ -g -c -O0 rgtools.cpp $(INCLUDES) $(CXXFLAGS)
+	g++ -g -c -O3 rgtools.cpp $(INCLUDES) $(CXXFLAGS)
 
 .PHONY: clean
 
