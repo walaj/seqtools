@@ -82,7 +82,7 @@ int main(int argc, char** argv) {
 	id_to_rg[rg_count] = rg;
       }
       if (diff_bams) { // if diff bams, store rg info
-	uint32_t k = __ac_Wang_hash(__ac_X31_hash_string(rr.Qname().c_str()) ^ m_seed);
+	uint32_t k = __ac_Wang_hash(__ac_X31_hash_string(rr.Qname().c_str()));
 	map_hash[k] = rmap[rg]; //rmap[rg] is uint8_t
 	//map[rr.Qname()] = rmap[rg];
       }
@@ -135,7 +135,7 @@ int main(int argc, char** argv) {
   w.WriteHeader();
 	
   while (r2.GetNextRecord(rr)) {
-    uint32_t k = __ac_Wang_hash(__ac_X31_hash_string(rr.Qname().c_str()) ^ m_seed);    
+    uint32_t k = __ac_Wang_hash(__ac_X31_hash_string(rr.Qname().c_str()));    
     //std::string rg = map[rr.Qname()];
     std::string rg = id_to_rg[map_hash[k]];
     if (rg.empty()) {
