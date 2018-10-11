@@ -1,4 +1,6 @@
-rgtools
-rgtools.o
+seqtools
+*.o
+*.d
+*~
 #*
 .*

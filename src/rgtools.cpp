@@ -1,9 +1,12 @@
-#include "SeqLib/BamReader.h"
-#include "SeqLib/BamWriter.h"
+#include <iostream>
 #include <sstream>
 
+#include "rgtools.h"
+
+#include "SeqLib/BamReader.h"
+#include "SeqLib/BamWriter.h"
+
 static const std::string delimiter = ":";
-static const uint32_t m_seed = 1337;
 
 void parseRG(const std::string& qname, std::string& parsed_rg) {
 
@@ -24,7 +27,7 @@ void parseRG(const std::string& qname, std::string& parsed_rg) {
   }
 }
 
-int main(int argc, char** argv) {
+void runRGTools(int argc, char** argv) {
 
   if (argc < 4) {
     std::cerr << "rgtools old_bam norg_bam sample_name > new_bam_with_rg" << std::endl;
@@ -59,10 +62,11 @@ int main(int argc, char** argv) {
 
   size_t no_rg = 0;
 
+  std::string rg;
   // loop first BAM and get all the read groups
   while (r.GetNextRecord(rr)) {
-    std::string rg = rr.GetZTag("RG");
-    if (rg.empty()) {
+
+    if (!rr.GetZTag("RG", rg)) {
       ++no_rg;
 
       // parse the RG

@@ -1,16 +1,25 @@
-INCLUDES=-I./SeqLib -I./SeqLib/htslib 
-LIBS=./SeqLib/src/libseqlib.a ./SeqLib/htslib/libhts.a 
-CXXFLAGS=-W -Wall -pedantic -std=c++14 
+INCLUDES=-I./SeqLib -I./SeqLib/htslib
+CPPFLAGS=$(INCLUDES) -MMD -MP
 
-binaries=rgtools
+LIBS+=-lz -lbz2 ./SeqLib/src/libseqlib.a ./SeqLib/htslib/libhts.a ./SeqLib/bwa/libbwa.a
+CXXFLAGS+=-W -Wall -Wno-nested-anon-types -Wno-sign-compare -pedantic -std=c++14 -O3 
 
-all: rgtools.o
-	g++ rgtools.o -O3 -g -o rgtools $(LIBS) -lpthread -lz -lm 
+SOURCES=$(wildcard src/*.cpp)
+OBJS=$(SOURCES:.cpp=.o)
+DEP=$(OBJECTS:.o=.d)  # one dependency file for each source
 
-rgtools.o: rgtools.cpp
-	g++ -g -c -O3 rgtools.cpp $(INCLUDES) $(CXXFLAGS)
+TARGET=seqtools
+
+$(TARGET): $(OBJS)
+	$(CXX) $(LDFLAGS) $(OBJS) -o $@ $(LIBS) $(LDLIBS)
+
+# c++ source
+src/%.cpp.o: %.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 
 .PHONY: clean
 
 clean:
-	rm -f $(binaries) *.o
+	rm -f $(binaries) $(OBJS) *~ $(DEPS) $(TARGET)
+
+-include $(DEPS)
