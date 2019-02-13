@@ -9,21 +9,28 @@
 #include <SeqLib/BWAWrapper.h>
 #include <SeqLib/FastqReader.h>
 
-static const char* shortopts = "hvk:s:";
+static const char* shortopts = "hvenk:s:f:";
 static const struct option longopts[] = {
   { "help",                    no_argument, NULL, 'h' },
   { "verbose",                 no_argument, NULL, 'v' },
+  { "fasta",                   required_argument, NULL, 'f' },
+  { "kmer",                    required_argument, NULL, 'k' },
+  { "exhaustive",              no_argument, NULL, 'e' },
+  { "seed",                    required_argument, NULL, 's' },        
   { NULL, 0, NULL, 0 }
 };
 
 static const char *KMER_USAGE_MESSAGE =
-  "Usage: seqtools kmer <fasta> -G <reference> -k <kmer_size> \n\n"
+  "Usage: seqtools kmer -f <fasta> -k <kmer_size> \n\n"
   "\n"
   "  General options\n"
   "  -v, --verbose                        Select verbose output\n"
   "  -h, --help                           Display this help and exit\n"
+  "  -f, --fasta                          The input fasta file\n"
   "  -k, --kmer                           Size of the kmer to produce\n"
   "  -s, --seed                           Set the seed for the random number generator [0]\n"
+  "  -e, --exhaustive                     Exhaustively produce every kmer\n"
+  "  -n                                   Print the kmer only (not as fasta)\n"    
   "\n";
 
 namespace opt {
@@ -31,12 +38,14 @@ namespace opt {
   static int seed = 0;
   static int kmer = -1;
   static bool verbose = false;
+  static bool exhaustive = false;
+  static bool printkmer = false;    
 }
 
 void runKmerize(int argc, char** argv) {
   
   parseKmerOptions(argc, argv);
-  
+
   // setup the fasta/fastq reader
   SeqLib::FastqReader fr;
   fr.Open(std::string(opt::fasta_file));
@@ -47,11 +56,32 @@ void runKmerize(int argc, char** argv) {
   SeqLib::UnalignedSequence s;
   int count = 0;
   while (fr.GetNextSequence(s)) {
-    if (s.Seq.length() > opt::kmer) {
-      int r = rand() % (s.Seq.length() - opt::kmer);
-      std::string ss = s.Seq.substr(r,opt::kmer);
-      std::cout << ">seq" << count << std::endl << ss << std::endl;
-    } 
+
+    // if not exhaustive, take random slices
+    if (!opt::exhaustive) {
+      if (s.Seq.length() > opt::kmer) {
+	int r = rand() % (s.Seq.length() - opt::kmer);
+	std::string ss = s.Seq.substr(r,opt::kmer);
+	if (!opt::printkmer) 
+	  std::cout << ">seq" << count << std::endl << ss << std::endl;
+	else
+	  std::cout << ss << std::endl;
+      }
+    }
+
+    // if exhaustive, take every possible kmer
+    else {
+      int i = 0;
+      while (i  + opt::kmer < s.Seq.length()) {
+	std::string ss = s.Seq.substr(i,opt::kmer);
+	++i;
+	if (!opt::printkmer) 
+	  std::cout << ">seq" << count << std::endl << ss << std::endl;
+	else
+	  std::cout << ss << std::endl;
+
+      }
+    }
     ++count;
   }
   
@@ -103,7 +133,7 @@ void parseKmerOptions(int argc, char** argv) {
 
   char c;
   while (optind < argc) {
-    opt::fasta_file = std::string(argv[optind]);
+    //opt::fasta_file = std::string(argv[optind]);
     //optind++;
     if ((c = getopt_long(argc, argv, shortopts, longopts, NULL)) != -1) {
       switch (c) {
@@ -112,6 +142,8 @@ void parseKmerOptions(int argc, char** argv) {
       case 'f': opt::fasta_file = std::string(optarg); break;
       case 'k': opt::kmer = atoi(optarg); break;
       case 's': opt::seed = atoi(optarg); break;
+      case 'e': opt::exhaustive = true; break;
+      case 'n': opt::printkmer = true; break;		
       default: break;
       }
     } else {

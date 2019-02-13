@@ -1,7 +1,7 @@
 INCLUDES=-I./SeqLib -I./SeqLib/htslib
 CPPFLAGS=$(INCLUDES) -MMD -MP
 
-LIBS+=-lz -lbz2 ./SeqLib/src/libseqlib.a ./SeqLib/htslib/libhts.a ./SeqLib/bwa/libbwa.a
+LIBS+=./SeqLib/src/libseqlib.a ./SeqLib/htslib/libhts.a ./SeqLib/bwa/libbwa.a -lz -lbz2 -pthread -llzma
 CXXFLAGS+=-W -Wall -Wno-nested-anon-types -Wno-sign-compare -pedantic -std=c++14 -O3 
 
 SOURCES=$(wildcard src/*.cpp)
